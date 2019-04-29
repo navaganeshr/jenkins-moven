@@ -1,0 +1,200 @@
+#!/bin/bash
+   if [ -z $Commit ] ; then
+      Commit=`git log $branch -1 --pretty=format:"%H"`
+   else 
+      git checkout $Commit
+     
+     if [ `echo $?` -ne 0 ] ; then 
+     
+           exit 1;
+       fi   
+       
+     fi 
+
+   if [ -z $TAG ] ; then
+      TAG=`git describe --tags --abbrev=0 "$Commit" | tail -n1`
+   elif [ -z $TAG ] ; then
+      exit 1;
+      
+    fi
+       
+
+echo ''
+echo ''
+echo "################### BUIILDING FROM THE COMMIT-ID $Commit AND $TAG############"
+echo ''
+echo ''
+echo ''
+echo '################### BUIILDING THE SERVICES ####################################' 
+         
+all_services=$(cat /tmp/stage_services)
+
+for i in $all_services 
+
+do 
+ 
+ if [ $i == "stage-processor-retail" ] ; then 
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/processors/welcome/
+    echo "Building the Processor-retail-Service"
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-processor-welcome:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-processor-welcome:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-processor-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-processor-$i
+
+
+ 
+ elif [ $i == "stage-processor-retail" ] ; then 
+    echo "Building the Processor-retail-Service"
+    cd /var/lib/jenkins/workspace/dev-stage-all-layers/processors/welcome/
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-processor-retail:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-processor-retail$i:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-processor-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-processor-$i
+    
+
+ 
+ elif [ $i == "stage-processor-security" ] ; then
+    echo "Building the Processor-welcome-Service"-re
+    cd /var/lib/jenkins/workspace/dev-build-all-layers/processors/security/
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-processor-security:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-processor-security:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-processor-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-processor-$i
+ 
+ 
+ 
+ elif [ $i == "stage-transformer-customer-mgmt" ] ; then
+    echo "Building the stage-transformer-customer-mgmt "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/customer-mgmt/
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-customer-mgmt:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-$i:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+      
+      
+      
+ elif [ $i == "stage-transformer-account-list" ] ; then
+    echo "Building the stage-transformer-account-list "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/account-list
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-account-list:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-$i:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+ 
+
+
+ elif [ $i == "stage-transformer-account-summary" ] ; then
+    echo "Building the stage-transformer-account-summary "
+    cd /var/lib/jenkins/workspace/stage-build-all-layersS/transformers/account-summary
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-account-summary:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-account-summary:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+
+
+ elif [ $i == "stage-transformer-fund-transfers" ] ; then
+    echo "Building the stage-transformer-fund-transfers "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/fund-transfers
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-fund-transfers:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-fund-transfers:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i  
+
+
+ elif [ $i == "stage-transformer-account-mgmt" ] ; then
+    echo "Building the stage-transformer-account-mgmt "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/account-mgmt/
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-account-mgmt:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-account-mgmt-$i:latest
+    ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+    ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i    
+ 
+
+
+ elif [ $i == "stage-transformer-transactions" ] ; then
+    echo "Building the stage-transformer-transactions "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/transactions/
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-transactions:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-$i:latest
+ ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+ ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+
+ elif [ $i == "stage-transformer-security" ] ; then
+    echo "Building the stage-transformer-security "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/security/
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-security:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-$i:latest
+ ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+ ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+
+
+
+ elif [ $i == "stage-transformer-profile" ] ; then
+    echo "Building the stage-transformer-profile "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/profile/finacle-profile
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-profile:latest --pull=true .
+    docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-$i:latest
+ ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+ ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+ 
+ 
+ elif [ $i == "stage-transformer-profile" ] ; then
+    echo "Building the stage-transformer-profile "
+    cd /var/lib/jenkins/workspace/stage-build-all-layers/transformers/profile/t24-profile
+    rm -rf node_modules package-lock.json dist
+    npm install
+    npm run build
+    cd dist
+    docker build --build-arg ID_RSA="$(cat ~/.ssh/id_rsa)" --build-arg ID_RSA_PUB="$(cat ~/.ssh/id_rsa.pub)" -t registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-profile:latest --pull=true .
+   docker push registry-intl.ap-southeast-5.aliyuncs.com/dev-moven/stage-transformer-$i:latest
+ ssh root@147.139.140.24 kubectl scale --replicas=0 -n stage-moven deployment stage-transformer-$i
+ ssh root@147.139.140.24 kubectl scale --replicas=1 -n stage-moven deployment stage-transformer-$i
+ 
+ 
+ 
+ fi 
+ done
